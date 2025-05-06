@@ -1,47 +1,54 @@
 #include <AccelStepper.h>
-#include <Servo.h>
 
-// Stepper X
-#define STEP_X 3
-#define DIR_X 4
+// Chân stepper
+#define STEP_X 4
+#define DIR_X 3
+#define STEP_Y 7
+#define DIR_Y 6
+#define STEP_Z 10
+#define DIR_Z 9
 
-// Stepper Y
-#define STEP_Y 6
-#define DIR_Y 7
-
-// Stepper Z
-#define STEP_Z 9
-#define DIR_Z 10
-
-// Limit switches
+// Công tắc hành trình gốc
 #define X_LIMIT 31
 #define Y_LIMIT 30
 #define Z_LIMIT 32
 
-// Servo gripper
-#define GRIPPER_PIN 8
-Servo gripper;
+// Chân relay điều khiển nam châm điện
+#define RELAY_PIN 12
 
 AccelStepper stepperX(AccelStepper::DRIVER, STEP_X, DIR_X);
 AccelStepper stepperY(AccelStepper::DRIVER, STEP_Y, DIR_Y);
 AccelStepper stepperZ(AccelStepper::DRIVER, STEP_Z, DIR_Z);
 
-void homeAxis(AccelStepper &stepper, int limitPin, bool reverse = false) {
-  stepper.setMaxSpeed(400);
-  stepper.setSpeed(reverse ?  -200 : 200);
-  while (digitalRead(limitPin) == HIGH) {
-    stepper.runSpeed();
+void homeAxes() {
+  unsigned long timeout;
+
+  // Home X
+  stepperX.setSpeed(-200);
+  timeout = millis();
+  while (digitalRead(X_LIMIT) == HIGH && millis() - timeout < 5000) {
+    stepperX.runSpeed();
   }
-  stepper.setCurrentPosition(0);
+  stepperX.setCurrentPosition(0);
+
+  // Home Y
+  stepperY.setSpeed(-800);
+  timeout = millis();
+  while (digitalRead(Y_LIMIT) == HIGH && millis() - timeout < 5000) {
+    stepperY.runSpeed();
+  }
+  stepperY.setCurrentPosition(0);
+
+  // Home Z
+  stepperZ.setSpeed(-200);
+  timeout = millis();
+  while (digitalRead(Z_LIMIT) == HIGH && millis() - timeout < 5000) {
+    stepperZ.runSpeed();
+  }
+  stepperZ.setCurrentPosition(0);
 }
 
-void homeAll() {
-  homeAxis(stepperX, X_LIMIT, true);
-  homeAxis(stepperY, Y_LIMIT, true);
-  homeAxis(stepperZ, Z_LIMIT, true);
-}
-
-void moveToPosition(long x, long y, long z) {
+void moveTo(long x, long y, long z) {
   stepperX.moveTo(x);
   stepperY.moveTo(y);
   stepperZ.moveTo(z);
@@ -49,16 +56,17 @@ void moveToPosition(long x, long y, long z) {
     stepperX.run();
     stepperY.run();
     stepperZ.run();
+    delay(1);
   }
 }
 
 void grab() {
-  gripper.write(30); // đóng gripper
+  digitalWrite(RELAY_PIN, HIGH);  // Bật nam châm điện
   delay(500);
 }
 
 void release() {
-  gripper.write(90); // mở gripper
+  digitalWrite(RELAY_PIN, LOW);  // Tắt nam châm điện
   delay(500);
 }
 
@@ -68,45 +76,102 @@ void setup() {
   pinMode(X_LIMIT, INPUT_PULLUP);
   pinMode(Y_LIMIT, INPUT_PULLUP);
   pinMode(Z_LIMIT, INPUT_PULLUP);
+  pinMode(RELAY_PIN, OUTPUT);
 
   stepperX.setMaxSpeed(1000);
-  stepperX.setAcceleration(300);
+  stepperX.setAcceleration(1000);
   stepperY.setMaxSpeed(1000);
-  stepperY.setAcceleration(300);
+  stepperY.setAcceleration(1000);
   stepperZ.setMaxSpeed(1000);
-  stepperZ.setAcceleration(300);
+  stepperZ.setAcceleration(1000);
 
-  gripper.attach(GRIPPER_PIN);
-  release(); // mở kẹp ban đầu
+  Serial.println("Robot Control System (Nam châm điện)");
+  Serial.println("-------------------------------------");
+  Serial.println("Các lệnh có sẵn:");
+  Serial.println("HOME - Về vị trí gốc");
+  Serial.println("X123 - Di chuyển trục X đến vị trí 123 xung");
+  Serial.println("Y123 - Di chuyển trục Y đến vị trí 123 xung");
+  Serial.println("Z123 - Di chuyển trục Z đến vị trí 123 xung");
+  Serial.println("MOVE X Y Z - Di chuyển đến vị trí (X, Y, Z)");
+  Serial.println("GRAB - Bật nam châm");
+  Serial.println("RELEASE - Tắt nam châm");
+  Serial.println("-------------------------------------");
 
-  homeAll();
+  Serial.println("Homing...");
+  homeAxes();  // Thực hiện homing 3 trục
+  Serial.println("Homing xong. Đang di chuyển đến vị trí làm việc...");
+  moveTo(16000, 813, 1000);  // Di chuyển đến vị trí cố định
+  Serial.println("Sẵn sàng.");
 }
 
 void loop() {
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
+    Serial.print("Nhận lệnh: ");
+    Serial.println(cmd);
 
-    if (cmd == "CMD1") {
-      homeAll();
-      moveToPosition(1000, 500, 200); // vị trí lấy vật
+    if (cmd.startsWith("X")) {
+      long pos = cmd.substring(1).toInt();
+      Serial.print("Di chuyển X đến: ");
+      Serial.println(pos);
+      stepperX.moveTo(pos);
+    }
+    else if (cmd.startsWith("Y")) {
+      long pos = cmd.substring(1).toInt();
+      Serial.print("Di chuyển Y đến: ");
+      Serial.println(pos);
+      stepperY.moveTo(pos);
+    }
+    else if (cmd.startsWith("Z")) {
+      long pos = cmd.substring(1).toInt();
+      Serial.print("Di chuyển Z đến: ");
+      Serial.println(pos);
+      stepperZ.moveTo(pos);
+    }
+    else if (cmd.startsWith("MOVE ")) {
+      cmd.replace("MOVE ", "");
+      int firstSpace = cmd.indexOf(' ');
+      int secondSpace = cmd.indexOf(' ', firstSpace + 1);
+
+      if (firstSpace > 0 && secondSpace > 0) {
+        long x = cmd.substring(0, firstSpace).toInt();
+        long y = cmd.substring(firstSpace + 1, secondSpace).toInt();
+        long z = cmd.substring(secondSpace + 1).toInt();
+
+        Serial.print("Di chuyển đến (");
+        Serial.print(x);
+        Serial.print(", ");
+        Serial.print(y);
+        Serial.print(", ");
+        Serial.print(z);
+        Serial.println(")");
+
+        moveTo(x, y, z);
+      }
+    }
+    else if (cmd == "GRAB") {
+      Serial.println("Bật nam châm (gắp vật)");
       grab();
-      moveToPosition(0, 0, 500); // vị trí thả
+    }
+    else if (cmd == "RELEASE") {
+      Serial.println("Tắt nam châm (nhả vật)");
       release();
     }
-    else if (cmd == "CMD2") {
-      homeAll();
-      moveToPosition(800, 600, 200);
-      grab();
-      moveToPosition(0, 300, 500);
-      release();
-    }
-    else if (cmd == "CMD3") {
-      homeAll();
-      moveToPosition(600, 700, 200);
-      grab();
-      moveToPosition(300, 0, 500);
-      release();
+    else if (cmd == "HOME") {
+      Serial.println("Về vị trí gốc");
+      homeaxes();
+    else if (cmd == "RESTART") {
+      Serial.println("Về vị trí gốc");
+      homeaxes();
+      moveTo(16000, 813, 1000);
+
+    else {
+      Serial.println("Lệnh không hợp lệ. Vui lòng thử lại.");
     }
   }
+
+  stepperX.run();
+  stepperY.run();
+  stepperZ.run();
 }
