@@ -134,7 +134,14 @@ void loop() {
       moveTo(200, 0, 100);
       
     }
+    else if (cmd == "grab"){
+      grab();
+    }
+    else if( cmd == "rel"){
+      release();
+    }
   }
+
 
   // Cập nhật động cơ liên tục
   stepperX.run();
