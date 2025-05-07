@@ -10,6 +10,59 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.patches as patches
+import serial
+import time
+import serial.tools.list_ports
+
+#Tạo lớp kết nối Arduino
+class ArduinoConnection:
+    def __init__(self, parent=None):
+        self.parent = parent
+        self.serial_port = None
+        self.connected = False
+        
+    def get_available_ports(self):
+        """Lấy danh sách các cổng COM có sẵn"""
+        ports = []
+        for port in serial.tools.list_ports.comports():
+            ports.append(port.device)
+        return ports
+        
+    def connect(self, port, baud_rate=9600):
+        """Kết nối với Arduino thông qua cổng COM đã chọn"""
+        try:
+            self.serial_port = serial.Serial(port, baud_rate, timeout=1)
+            time.sleep(2)  # Đợi Arduino khởi động lại
+            self.connected = True
+            return True
+        except Exception as e:
+            print(f"Lỗi kết nối: {e}")
+            self.connected = False
+            return False
+            
+    def disconnect(self):
+        """Ngắt kết nối với Arduino"""
+        if self.serial_port and self.serial_port.is_open:
+            self.serial_port.close()
+            self.connected = False
+            return True
+        return False
+        
+    def send_command(self, command):
+        """Gửi lệnh đến Arduino"""
+        if not self.connected or not self.serial_port:
+            return False, "Không có kết nối!"
+            
+        try:
+            self.serial_port.write(f"{command}\n".encode())
+            # Đợi và đọc phản hồi nếu có
+            time.sleep(0.1)
+            if self.serial_port.in_waiting:
+                response = self.serial_port.readline().decode().strip()
+                return True, response
+            return True, "Đã gửi lệnh"
+        except Exception as e:
+            return False, f"Lỗi khi gửi lệnh: {e}"
 
 #Thanh trượt hiện đại
 class ModernSlider(QWidget):
@@ -105,6 +158,75 @@ class SCARARobotCanvas(FigureCanvas):
         self.axes.axvline(x=0, color='k', linestyle='-', alpha=0.3)
         self.draw()
 
+# Widget kết nối Arduino
+class ConnectionWidget(QGroupBox):
+    def __init__(self, parent=None):
+        super().__init__("Kết nối Arduino", parent)
+        self.arduino = ArduinoConnection(parent)
+        self.init_ui()
+        
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+        
+        # Combo box để chọn cổng
+        port_layout = QHBoxLayout()
+        port_layout.addWidget(QLabel("Cổng COM:"))
+        self.port_combo = QComboBox()
+        self.refresh_ports()
+        port_layout.addWidget(self.port_combo)
+        
+        self.refresh_btn = QPushButton("Làm mới")
+        self.refresh_btn.clicked.connect(self.refresh_ports)
+        port_layout.addWidget(self.refresh_btn)
+        layout.addLayout(port_layout)
+        
+        # Nút kết nối/ngắt kết nối
+        self.connect_btn = QPushButton("Kết nối")
+        self.connect_btn.clicked.connect(self.toggle_connection)
+        layout.addWidget(self.connect_btn)
+        
+        # Trạng thái kết nối
+        self.status_label = QLabel("Trạng thái: Chưa kết nối")
+        layout.addWidget(self.status_label)
+        
+    def refresh_ports(self):
+        """Làm mới danh sách cổng COM"""
+        self.port_combo.clear()
+        ports = self.arduino.get_available_ports()
+        if ports:
+            self.port_combo.addItems(ports)
+        else:
+            self.port_combo.addItem("Không tìm thấy cổng")
+            
+    def toggle_connection(self):
+        """Kết nối hoặc ngắt kết nối Arduino"""
+        if not self.arduino.connected:
+            port = self.port_combo.currentText()
+            if port and port != "Không tìm thấy cổng":
+                if self.arduino.connect(port):
+                    self.status_label.setText("Trạng thái: Đã kết nối")
+                    self.connect_btn.setText("Ngắt kết nối")
+                    QMessageBox.information(self, "Kết nối", f"Đã kết nối thành công với {port}")
+                else:
+                    QMessageBox.warning(self, "Lỗi", f"Không thể kết nối với {port}")
+            else:
+                QMessageBox.warning(self, "Lỗi", "Vui lòng chọn cổng COM hợp lệ")
+        else:
+            if self.arduino.disconnect():
+                self.status_label.setText("Trạng thái: Đã ngắt kết nối")
+                self.connect_btn.setText("Kết nối")
+                
+    def send_command(self, command):
+        """Gửi lệnh đến Arduino và hiển thị kết quả"""
+        if not self.arduino.connected:
+            QMessageBox.warning(self, "Lỗi", "Chưa kết nối với Arduino")
+            return False
+            
+        success, response = self.arduino.send_command(command)
+        if not success:
+            QMessageBox.warning(self, "Lỗi", response)
+        return success
+
 #Giao diện chính
 class SCARAGUI(QWidget):
     def __init__(self):
@@ -133,6 +255,10 @@ class SCARAGUI(QWidget):
         main_layout = QHBoxLayout(self)
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
+        
+        # Thêm widget kết nối
+        self.connection_widget = ConnectionWidget(self)
+        left_layout.addWidget(self.connection_widget)
         
         # Sliders
         self.slider1 = ModernSlider("Joint 1 (Base)", 0, int(self.PPR1 * 180 / 360), 0, "pulses")
@@ -181,6 +307,32 @@ class SCARAGUI(QWidget):
         angle_layout.addWidget(self.set_angle_button, 1, 0, 1, 4)
         angle_group.setLayout(angle_layout)
         left_layout.addWidget(angle_group)
+        
+        # Arduino Control Buttons
+        arduino_group = QGroupBox("Arduino Control")
+        arduino_layout = QGridLayout()
+        
+        # Nút gửi vị trí đến Arduino
+        self.send_pos_button = QPushButton("Gửi vị trí đến Arduino")
+        self.send_pos_button.clicked.connect(self.send_position_to_arduino)
+        arduino_layout.addWidget(self.send_pos_button, 0, 0, 1, 2)
+        
+        # Nút điều khiển nam châm
+        self.grab_button = QPushButton("Gắp vật (GRAB)")
+        self.grab_button.clicked.connect(self.send_grab_command)
+        arduino_layout.addWidget(self.grab_button, 1, 0)
+        
+        self.release_button = QPushButton("Nhả vật (RELEASE)")
+        self.release_button.clicked.connect(self.send_release_command)
+        arduino_layout.addWidget(self.release_button, 1, 1)
+        
+        # Nút về home
+        self.home_button = QPushButton("Về vị trí gốc (HOME)")
+        self.home_button.clicked.connect(self.send_home_command)
+        arduino_layout.addWidget(self.home_button, 2, 0, 1, 2)
+        
+        arduino_group.setLayout(arduino_layout)
+        left_layout.addWidget(arduino_group)
         
         self.reset_button = QPushButton("Reset Position")
         self.reset_button.clicked.connect(self.reset_position)
@@ -241,6 +393,34 @@ class SCARAGUI(QWidget):
         self.slider1.setValue(0)
         self.slider2.setValue(0)
         self.update_plot()
+        
+    def send_position_to_arduino(self):
+        """Gửi lệnh vị trí hiện tại đến Arduino"""
+        x_pos = int(self.x_input.value() * 1000)  # Chuyển đổi cm sang xung (giả định)
+        y_pos = int(self.y_input.value() * 1000)  # Chuyển đổi cm sang xung
+        z_pos = 1000  # Vị trí mặc định cho trục Z
+        
+        # Tạo lệnh MOVE X Y Z
+        command = f"MOVE {x_pos} {y_pos} {z_pos}"
+        
+        # Gửi lệnh và kiểm tra kết quả
+        if self.connection_widget.send_command(command):
+            QMessageBox.information(self, "Thành công", f"Đã gửi lệnh: {command}")
+        
+    def send_grab_command(self):
+        """Gửi lệnh gắp vật (bật nam châm)"""
+        if self.connection_widget.send_command("GRAB"):
+            QMessageBox.information(self, "Thành công", "Đã gửi lệnh GRAB")
+        
+    def send_release_command(self):
+        """Gửi lệnh nhả vật (tắt nam châm)"""
+        if self.connection_widget.send_command("RELEASE"):
+            QMessageBox.information(self, "Thành công", "Đã gửi lệnh RELEASE")
+            
+    def send_home_command(self):
+        """Gửi lệnh quay về vị trí gốc"""
+        if self.connection_widget.send_command("HOME"):
+            QMessageBox.information(self, "Thành công", "Đã gửi lệnh HOME")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
