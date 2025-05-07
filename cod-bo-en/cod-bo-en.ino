@@ -63,13 +63,14 @@ void moveTo(long x, long y, long z) {
 void grab() {
   digitalWrite(RELAY_PIN, HIGH);  // Bật nam châm điện
   delay(500);
+  Serial.println("Nam châm điện đã bật");  // Thêm thông báo trạng thái
 }
 
 void release() {
   digitalWrite(RELAY_PIN, LOW);  // Tắt nam châm điện
   delay(500);
+  Serial.println("Nam châm điện đã tắt");  // Thêm thông báo trạng thái
 }
-
 void setup() {
   Serial.begin(9600);
 
