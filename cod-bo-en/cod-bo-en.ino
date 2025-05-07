@@ -1,56 +1,56 @@
 #include <AccelStepper.h>
 
 // Chân stepper
-#define STEP_X 4
-#define DIR_X 3
-#define STEP_Y 7
-#define DIR_Y 6
+#define STEP_Y 4   // Trước đây là STEP_X
+#define DIR_Y 3    // Trước đây là DIR_X
+#define STEP_X 7   // Trước đây là STEP_Y
+#define DIR_X 6    // Trước đây là DIR_Y
 #define STEP_Z 10
 #define DIR_Z 9
 
 // Công tắc hành trình gốc
-#define X_LIMIT 31
-#define Y_LIMIT 30
+#define Y_LIMIT 31  // Trước đây là X_LIMIT
+#define X_LIMIT 30  // Trước đây là Y_LIMIT
 #define Z_LIMIT 32
 
 // Chân relay điều khiển nam châm điện
 #define RELAY_PIN 12
 
-AccelStepper stepperX(AccelStepper::DRIVER, STEP_X, DIR_X);
-AccelStepper stepperY(AccelStepper::DRIVER, STEP_Y, DIR_Y);
+AccelStepper stepperY(AccelStepper::DRIVER, STEP_Y, DIR_Y);  // Trước đây là stepperX
+AccelStepper stepperX(AccelStepper::DRIVER, STEP_X, DIR_X);  // Trước đây là stepperY
 AccelStepper stepperZ(AccelStepper::DRIVER, STEP_Z, DIR_Z);
 
 void homeAxes() {
   unsigned long timeout;
 
-  // Home X
-  stepperX.setSpeed(-200);
-  timeout = millis();
-  while (digitalRead(X_LIMIT) == HIGH && millis() - timeout < 5000) {
-    stepperX.runSpeed();
-  }
-  stepperX.setCurrentPosition(0);
-
-  // Home Y
-  stepperY.setSpeed(-800);
+  // Home Y 
+  stepperY.setSpeed(-200);
   timeout = millis();
   while (digitalRead(Y_LIMIT) == HIGH && millis() - timeout < 5000) {
     stepperY.runSpeed();
   }
   stepperY.setCurrentPosition(0);
 
-  // Home Z
-  stepperZ.setSpeed(-200);
+  // Home X 
+  stepperX.setSpeed(-1000);
   timeout = millis();
-  while (digitalRead(Z_LIMIT) == HIGH && millis() - timeout < 5000) {
+  while (digitalRead(X_LIMIT) == HIGH && millis() - timeout < 30000) {
+    stepperX.runSpeed();
+  }
+  stepperX.setCurrentPosition(0);
+
+  // Home Z
+  stepperZ.setSpeed(-500);
+  timeout = millis();
+  while (digitalRead(Z_LIMIT) == HIGH && millis() - timeout < 100000) {
     stepperZ.runSpeed();
   }
   stepperZ.setCurrentPosition(0);
 }
 
 void moveTo(long x, long y, long z) {
-  stepperX.moveTo(x);
-  stepperY.moveTo(y);
+  stepperX.moveTo(x);  // Đã đổi trục X và Y
+  stepperY.moveTo(y);  // Đã đổi trục X và Y
   stepperZ.moveTo(z);
   while (stepperX.distanceToGo() != 0 || stepperY.distanceToGo() != 0 || stepperZ.distanceToGo() != 0) {
     stepperX.run();
@@ -73,15 +73,15 @@ void release() {
 void setup() {
   Serial.begin(9600);
 
-  pinMode(X_LIMIT, INPUT_PULLUP);
-  pinMode(Y_LIMIT, INPUT_PULLUP);
+  pinMode(Y_LIMIT, INPUT_PULLUP);  // Đã đổi X_LIMIT thành Y_LIMIT
+  pinMode(X_LIMIT, INPUT_PULLUP);  // Đã đổi Y_LIMIT thành X_LIMIT
   pinMode(Z_LIMIT, INPUT_PULLUP);
   pinMode(RELAY_PIN, OUTPUT);
 
-  stepperX.setMaxSpeed(1000);
-  stepperX.setAcceleration(1000);
-  stepperY.setMaxSpeed(1000);
-  stepperY.setAcceleration(1000);
+  stepperY.setMaxSpeed(200);  // stepperY
+  stepperY.setAcceleration(200);  //stepperY
+  stepperX.setMaxSpeed(1000);  // stepperX
+  stepperX.setAcceleration(1000);  //stepperX
   stepperZ.setMaxSpeed(1000);
   stepperZ.setAcceleration(1000);
 
@@ -95,12 +95,13 @@ void setup() {
   Serial.println("MOVE X Y Z - Di chuyển đến vị trí (X, Y, Z)");
   Serial.println("GRAB - Bật nam châm");
   Serial.println("RELEASE - Tắt nam châm");
+  Serial.println("RESTART - Về vị trí gốc và di chuyển đến vị trí làm việc");
   Serial.println("-------------------------------------");
 
   Serial.println("Homing...");
   homeAxes();  // Thực hiện homing 3 trục
   Serial.println("Homing xong. Đang di chuyển đến vị trí làm việc...");
-  moveTo(16000, 813, 1000);  // Di chuyển đến vị trí cố định
+  moveTo(16000, 813, 5000);  // Di chuyển đến vị trí cố định
   Serial.println("Sẵn sàng.");
 }
 
@@ -115,13 +116,13 @@ void loop() {
       long pos = cmd.substring(1).toInt();
       Serial.print("Di chuyển X đến: ");
       Serial.println(pos);
-      stepperX.moveTo(pos);
+      stepperX.moveTo(pos);  // Đã đổi thành stepperX (khớp với tên trục mới)
     }
     else if (cmd.startsWith("Y")) {
       long pos = cmd.substring(1).toInt();
       Serial.print("Di chuyển Y đến: ");
       Serial.println(pos);
-      stepperY.moveTo(pos);
+      stepperY.moveTo(pos);  // Đã đổi thành stepperY (khớp với tên trục mới)
     }
     else if (cmd.startsWith("Z")) {
       long pos = cmd.substring(1).toInt();
@@ -160,12 +161,13 @@ void loop() {
     }
     else if (cmd == "HOME") {
       Serial.println("Về vị trí gốc");
-      homeaxes();
+      homeAxes();
+    }
     else if (cmd == "RESTART") {
-      Serial.println("Về vị trí gốc");
-      homeaxes();
-      moveTo(16000, 813, 1000);
-
+      Serial.println("Về vị trí gốc và đến vị trí làm việc");
+      homeAxes();
+      moveTo(16000, 813, 11000);
+    }
     else {
       Serial.println("Lệnh không hợp lệ. Vui lòng thử lại.");
     }
