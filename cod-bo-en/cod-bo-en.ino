@@ -12,8 +12,6 @@
 #define Y_LIMIT 31  // Trước đây là X_LIMIT
 #define X_LIMIT 30  // Trước đây là Y_LIMIT
 #define Z_LIMIT 32
-
-// Chân relay điều khiển nam châm điện
 #define RELAY_PIN 12
 
 AccelStepper stepperY(AccelStepper::DRIVER, STEP_Y, DIR_Y);  // Trước đây là stepperX
@@ -21,36 +19,32 @@ AccelStepper stepperX(AccelStepper::DRIVER, STEP_X, DIR_X);  // Trước đây l
 AccelStepper stepperZ(AccelStepper::DRIVER, STEP_Z, DIR_Z);
 
 void homeAxes() {
-  unsigned long timeout;
-
-  // Home Y 
+  
+  // Home Y
   stepperY.setSpeed(-200);
-  timeout = millis();
-  while (digitalRead(Y_LIMIT) == HIGH && millis() - timeout < 5000) {
+  while (digitalRead(Y_LIMIT) == HIGH && millis()) {
     stepperY.runSpeed();
   }
   stepperY.setCurrentPosition(0);
-
-  // Home X 
+  
+  // Home X
   stepperX.setSpeed(-1000);
-  timeout = millis();
-  while (digitalRead(X_LIMIT) == HIGH && millis() - timeout < 30000) {
+  while (digitalRead(X_LIMIT) == HIGH && millis()) {
     stepperX.runSpeed();
   }
   stepperX.setCurrentPosition(0);
-
+  
   // Home Z
-  stepperZ.setSpeed(-500);
-  timeout = millis();
-  while (digitalRead(Z_LIMIT) == HIGH && millis() - timeout < 100000) {
+  stepperZ.setSpeed(-800);
+  while (digitalRead(Z_LIMIT) == HIGH && millis()) {
     stepperZ.runSpeed();
   }
   stepperZ.setCurrentPosition(0);
 }
 
 void moveTo(long x, long y, long z) {
-  stepperX.moveTo(x);  // Đã đổi trục X và Y
-  stepperY.moveTo(y);  // Đã đổi trục X và Y
+  stepperX.moveTo(x);
+  stepperY.moveTo(y);
   stepperZ.moveTo(z);
   while (stepperX.distanceToGo() != 0 || stepperY.distanceToGo() != 0 || stepperZ.distanceToGo() != 0) {
     stepperX.run();
@@ -62,30 +56,31 @@ void moveTo(long x, long y, long z) {
 
 void grab() {
   digitalWrite(RELAY_PIN, HIGH);  // Bật nam châm điện
-  delay(500);
-  Serial.println("Nam châm điện đã bật");  // Thêm thông báo trạng thái
+  delay(500);  // Thời gian bật nam châm điện
+  Serial.println("Nam châm điện đã bật");
 }
 
 void release() {
   digitalWrite(RELAY_PIN, LOW);  // Tắt nam châm điện
-  delay(500);
-  Serial.println("Nam châm điện đã tắt");  // Thêm thông báo trạng thái
+  delay(500);  // Thời gian tắt nam châm điện
+  Serial.println("Nam châm điện đã tắt");
 }
+
 void setup() {
   Serial.begin(9600);
-
+  
   pinMode(Y_LIMIT, INPUT_PULLUP);  // Đã đổi X_LIMIT thành Y_LIMIT
   pinMode(X_LIMIT, INPUT_PULLUP);  // Đã đổi Y_LIMIT thành X_LIMIT
   pinMode(Z_LIMIT, INPUT_PULLUP);
-  pinMode(RELAY_PIN, OUTPUT);
-
+  pinMode(RELAY_PIN, OUTPUT);  // Cấu hình chân relay
+  
   stepperY.setMaxSpeed(200);  // stepperY
   stepperY.setAcceleration(200);  //stepperY
   stepperX.setMaxSpeed(1000);  // stepperX
   stepperX.setAcceleration(1000);  //stepperX
   stepperZ.setMaxSpeed(1000);
   stepperZ.setAcceleration(1000);
-
+  
   Serial.println("Robot Control System (Nam châm điện)");
   Serial.println("-------------------------------------");
   Serial.println("Các lệnh có sẵn:");
@@ -97,13 +92,11 @@ void setup() {
   Serial.println("GRAB - Bật nam châm");
   Serial.println("RELEASE - Tắt nam châm");
   Serial.println("RESTART - Về vị trí gốc và di chuyển đến vị trí làm việc");
+  Serial.println("TEST - Kiểm tra hoạt động nam châm điện");  // Thêm lệnh kiểm tra
   Serial.println("-------------------------------------");
-
+  
   Serial.println("Homing...");
   homeAxes();  // Thực hiện homing 3 trục
-  Serial.println("Homing xong. Đang di chuyển đến vị trí làm việc...");
-  moveTo(16000, 813, 5000);  // Di chuyển đến vị trí cố định
-  Serial.println("Sẵn sàng.");
 }
 
 void loop() {
@@ -112,7 +105,7 @@ void loop() {
     cmd.trim();
     Serial.print("Nhận lệnh: ");
     Serial.println(cmd);
-
+    
     if (cmd.startsWith("X")) {
       long pos = cmd.substring(1).toInt();
       Serial.print("Di chuyển X đến: ");
@@ -135,12 +128,12 @@ void loop() {
       cmd.replace("MOVE ", "");
       int firstSpace = cmd.indexOf(' ');
       int secondSpace = cmd.indexOf(' ', firstSpace + 1);
-
+      
       if (firstSpace > 0 && secondSpace > 0) {
         long x = cmd.substring(0, firstSpace).toInt();
         long y = cmd.substring(firstSpace + 1, secondSpace).toInt();
         long z = cmd.substring(secondSpace + 1).toInt();
-
+        
         Serial.print("Di chuyển đến (");
         Serial.print(x);
         Serial.print(", ");
@@ -148,26 +141,39 @@ void loop() {
         Serial.print(", ");
         Serial.print(z);
         Serial.println(")");
-
+        
         moveTo(x, y, z);
       }
     }
-    else if (cmd == "GRAB") {
+else if (cmd == "HOP1") {
+  moveTo(93, 1340, 300);   // Hạ xuống gần vật
+  grab();                  // Bật nam châm
+  moveTo(93, 1340, 10000); // Nâng vật lên
+}
+
+
+    else if (cmd == "grab") {  
       Serial.println("Bật nam châm (gắp vật)");
       grab();
     }
-    else if (cmd == "RELEASE") {
+    else if (cmd == "rel") {  
       Serial.println("Tắt nam châm (nhả vật)");
       release();
     }
-    else if (cmd == "HOME") {
+    else if (cmd == "home") {
       Serial.println("Về vị trí gốc");
       homeAxes();
     }
-    else if (cmd == "RESTART") {
+    else if (cmd == "restart") {
       Serial.println("Về vị trí gốc và đến vị trí làm việc");
       homeAxes();
       moveTo(16000, 813, 11000);
+    }
+    else if (cmd == "TEST") {
+      Serial.println("Kiểm tra nam châm điện");
+      grab();
+      delay(2000);
+      release();
     }
     else {
       Serial.println("Lệnh không hợp lệ. Vui lòng thử lại.");
