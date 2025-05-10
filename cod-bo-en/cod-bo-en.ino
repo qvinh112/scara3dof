@@ -90,7 +90,7 @@ void setup() {
   Serial.println("HOME - Về vị trí gốc");
   Serial.println("MOVE X Y Z - Di chuyển đến tọa độ");
   Serial.println("RELAY ON/OFF - Điều khiển nam châm điện");
-  Serial.println("HOP1 - Gắp vật tại vị trí định sẵn");
+  Serial.println("HOP1 - Thực hiện chu trình gắp vật và thả vật hoàn chỉnh");
   Serial.println("-------------------------------------");
   Serial.println("Homing...");
   homeAxes();
@@ -133,16 +133,49 @@ void loop() {
       }
     }
     else if (cmd == "HOP1") {
-      moveXYZ(93, 1340, 1000, 0); // Hạ xuống gần vật
+      Serial.println("Thực hiện chu trình gắp và thả vật");
+      
+      // Di chuyển đến vị trí trên vật
+      Serial.println("1. Di chuyển đến vị trí trên vật...");
+      moveXYZ(93, 1340, 5000);
       delay(500);
-      moveXYZ(93, 1340, 300, 1);  // Bật nam châm điện
+      
+      // Hạ xuống gần vật
+      Serial.println("2. Hạ xuống gần vật...");
+      moveXYZ(93, 1340, 300, 0); // Đảm bảo nam châm đã tắt khi tiếp cận
       delay(500);
-      moveXYZ(93, 1340, 5000, 1); // Nâng vật lên
+      
+      // Bật nam châm điện để gắp vật
+      Serial.println("3. Bật nam châm điện để gắp vật...");
+      controlRelay(true);
+      delay(1000); // Đợi lâu hơn để đảm bảo nam châm hoạt động tốt
+      
+      // Nâng vật lên cao
+      Serial.println("4. Nâng vật lên cao...");
+      moveXYZ(93, 1340, 5000, 1); // Giữ nam châm bật khi nâng
       delay(500);
-      moveXYZ(16000, 831, 5000, 1);
+      
+      // Di chuyển đến vị trí thả
+      Serial.println("5. Di chuyển đến vị trí thả...");
+      moveXYZ(16000, 831, 5000, 1); // Giữ nam châm bật trong quá trình di chuyển
       delay(500);
-      moveXYZ(16000, 831, 1000, 0);
+      
+      // Hạ xuống vị trí thả
+      Serial.println("6. Hạ xuống vị trí thả...");
+      moveXYZ(16000, 831, 1000, 1); // Giữ nam châm bật khi hạ xuống
       delay(500);
+      
+      // Tắt nam châm điện để thả vật
+      Serial.println("7. Tắt nam châm điện để thả vật...");
+      controlRelay(false);
+      delay(1000); // Đợi để đảm bảo vật được thả hoàn toàn
+      
+      // Nâng lên sau khi thả
+      Serial.println("8. Nâng lên sau khi thả...");
+      moveXYZ(16000, 831, 5000, 0); // Giữ nam châm tắt khi nâng lên
+      delay(500);
+      
+      Serial.println("Hoàn thành chu trình gắp và thả vật!");
     }
     else if (cmd == "HOME") {
       Serial.println("Về vị trí gốc");
