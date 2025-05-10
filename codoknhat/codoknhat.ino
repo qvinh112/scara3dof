@@ -29,7 +29,7 @@ void homeAxes() {
   unsigned long timeout;
 
   // Home X
-  stepperX.setSpeed(-200);
+  stepperX.setSpeed(-500);
   timeout = millis();
   while (digitalRead(X_LIMIT) == HIGH && millis() - timeout < 5000) {
     stepperX.runSpeed();
@@ -37,7 +37,7 @@ void homeAxes() {
   stepperX.setCurrentPosition(0);
 
   // Home Y
-  stepperY.setSpeed(-200);
+  stepperY.setSpeed(-1000);
   timeout = millis();
   while (digitalRead(Y_LIMIT) == HIGH && millis() - timeout < 5000) {
     stepperY.runSpeed();
@@ -45,7 +45,7 @@ void homeAxes() {
   stepperY.setCurrentPosition(0);
 
   // Home Z
-  stepperZ.setSpeed(-200);
+  stepperZ.setSpeed(-1000);
   timeout = millis();
   while (digitalRead(Z_LIMIT) == HIGH && millis() - timeout < 5000) {
     stepperZ.runSpeed();
@@ -111,29 +111,19 @@ void loop() {
     if (cmd == "CMD1") {
       homeAxes();
       grab();
-      moveTo(1000, 400, 1500);
-       release();
-      moveTo(0, 0, 200);
+      moveTo(83 , 831, 2000);
+      moveTo(0, 0, 2000);
       release();
     } 
     else if (cmd == "CMD2") {
       homeAxes();
       grab();
-      moveTo(800, 800, 150);
+      moveTo(800, 800, 2000);
   
-       release();
-      moveTo(0, 200, 150);
+      release();
+      moveTo(0, 200, 2000);
   
     } 
-    else if (cmd == "CMD3") {
-      homeAxes();
-      grab();
-      moveTo(600, 400, 100);
-      
-       release();
-      moveTo(200, 0, 100);
-      
-    }
   }
 
   // Cập nhật động cơ liên tục
