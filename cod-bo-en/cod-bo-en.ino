@@ -21,7 +21,7 @@ AccelStepper stepperZ(AccelStepper::DRIVER, STEP_Z, DIR_Z);
 void homeAxes() {
   // Home Y
   stepperY.setSpeed(-200);
-  while (digitalRead(Y_LIMIT) == HIGH ) {
+  while (digitalRead(Y_LIMIT) == HIGH) {
     stepperY.runSpeed();
   }
   stepperY.setCurrentPosition(0);
@@ -62,6 +62,12 @@ void moveXYZ(long x, long y, long z, int relayState = -1) {
   }
 }
 
+void controlRelay(bool state) {
+  digitalWrite(RELAY_PIN, state ? HIGH : LOW);
+  Serial.print("Nam châm điện đã ");
+  Serial.println(state ? "BẬT" : "TẮT");
+}
+
 void setup() {
   Serial.begin(9600);
   
@@ -69,6 +75,7 @@ void setup() {
   pinMode(X_LIMIT, INPUT_PULLUP);
   pinMode(Z_LIMIT, INPUT_PULLUP);
   pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, LOW); // Đảm bảo relay tắt khi khởi động
   
   stepperY.setMaxSpeed(200);
   stepperY.setAcceleration(200);
@@ -81,7 +88,8 @@ void setup() {
   Serial.println("-------------------------------------");
   Serial.println("Các lệnh có sẵn:");
   Serial.println("HOME - Về vị trí gốc");
-  Serial.println("MOVE");
+  Serial.println("MOVE X Y Z - Di chuyển đến tọa độ");
+  Serial.println("RELAY ON/OFF - Điều khiển nam châm điện");
   Serial.println("HOP1 - Gắp vật tại vị trí định sẵn");
   Serial.println("-------------------------------------");
   Serial.println("Homing...");
@@ -93,17 +101,23 @@ void loop() {
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
+    cmd.toUpperCase(); // Chuyển thành chữ hoa để xử lý nhất quán
+    
     Serial.print("Nhận lệnh: ");
     Serial.println(cmd);
-    if (cmd.startsWith("move ")) {
-      cmd.replace("MOVE ", "");
-      int firstSpace = cmd.indexOf(' ');
-      int secondSpace = cmd.indexOf(' ', firstSpace + 1);
+    
+    if (cmd.startsWith("MOVE ")) {
+      // Xử lý lệnh MOVE X Y Z
+      String params = cmd.substring(5); // Bỏ "MOVE "
+      params.trim();
+      
+      int firstSpace = params.indexOf(' ');
+      int secondSpace = params.indexOf(' ', firstSpace + 1);
       
       if (firstSpace > 0 && secondSpace > 0) {
-        long x = cmd.substring(0, firstSpace).toInt();
-        long y = cmd.substring(firstSpace + 1, secondSpace).toInt();
-        long z = cmd.substring(secondSpace + 1).toInt();
+        long x = params.substring(0, firstSpace).toInt();
+        long y = params.substring(firstSpace + 1, secondSpace).toInt();
+        long z = params.substring(secondSpace + 1).toInt();
         
         Serial.print("Di chuyển đến (");
         Serial.print(x);
@@ -114,28 +128,37 @@ void loop() {
         Serial.println(")");
         
         moveXYZ(x, y, z);
+      } else {
+        Serial.println("Định dạng sai. Sử dụng: MOVE X Y Z");
       }
     }
-    else if (cmd == "hop1") {
-      moveXYZ(93, 1340, 1000, 0);// Hạ xuống gần vật
-      delays(500);
+    else if (cmd == "HOP1") {
+      moveXYZ(93, 1340, 1000, 0); // Hạ xuống gần vật
+      delay(500);
       moveXYZ(93, 1340, 300, 1);  // Bật nam châm điện
-      delays(500);
+      delay(500);
       moveXYZ(93, 1340, 5000, 1); // Nâng vật lên
-      delays(500);
+      delay(500);
       moveXYZ(16000, 831, 5000, 1);
-      delays(500);
+      delay(500);
       moveXYZ(16000, 831, 1000, 0);
-      delays(500);
+      delay(500);
     }
-    else if (cmd == "home") {
+    else if (cmd == "HOME") {
       Serial.println("Về vị trí gốc");
       homeAxes();
+    }
+    else if (cmd == "RELAY ON") {
+      controlRelay(true);
+    }
+    else if (cmd == "RELAY OFF") {
+      controlRelay(false);
     }
     else {
       Serial.println("Lệnh không hợp lệ. Vui lòng thử lại.");
     }
   }
+  
   stepperX.run();
   stepperY.run();
   stepperZ.run();
