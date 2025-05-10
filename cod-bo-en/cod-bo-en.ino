@@ -73,9 +73,9 @@ void setup() {
   stepperY.setMaxSpeed(200);
   stepperY.setAcceleration(200);
   stepperX.setMaxSpeed(1000);
-  stepperX.setAcceleration(1000);
+  stepperX.setAcceleration(500);
   stepperZ.setMaxSpeed(1000);
-  stepperZ.setAcceleration(1000);
+  stepperZ.setAcceleration(500);
   
   Serial.println("Robot Control System (Nam châm điện)");
   Serial.println("-------------------------------------");
