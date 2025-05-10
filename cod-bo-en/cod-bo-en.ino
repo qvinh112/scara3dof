@@ -95,26 +95,7 @@ void loop() {
     cmd.trim();
     Serial.print("Nhận lệnh: ");
     Serial.println(cmd);
-    
-    if (cmd.startsWith("x")) {
-      long pos = cmd.substring(1).toInt();
-      Serial.print("Di chuyển X đến: ");
-      Serial.println(pos);
-      stepperX.moveTo(pos);
-    }
-    else if (cmd.startsWith("y")) {
-      long pos = cmd.substring(1).toInt();
-      Serial.print("Di chuyển Y đến: ");
-      Serial.println(pos);
-      stepperY.moveTo(pos);
-    }
-    else if (cmd.startsWith("z")) {
-      long pos = cmd.substring(1).toInt();
-      Serial.print("Di chuyển Z đến: ");
-      Serial.println(pos);
-      stepperZ.moveTo(pos);
-    }
-    else if (cmd.startsWith("move ")) {
+    if (cmd.startsWith("move ")) {
       cmd.replace("MOVE ", "");
       int firstSpace = cmd.indexOf(' ');
       int secondSpace = cmd.indexOf(' ', firstSpace + 1);
