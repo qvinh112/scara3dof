@@ -136,9 +136,16 @@ void loop() {
       }
     }
     else if (cmd == "hop1") {
-      moveXYZ(93, 1340, 1000, 0);     // Hạ xuống gần vật
+      moveXYZ(93, 1340, 1000, 0);// Hạ xuống gần vật
+      delays(500);
       moveXYZ(93, 1340, 300, 1);  // Bật nam châm điện
-      moveXYZ(93, 1340, 5000);   // Nâng vật lên
+      delays(500);
+      moveXYZ(93, 1340, 5000, 1); // Nâng vật lên
+      delays(500);
+      moveXYZ(16000, 831, 5000, 1);
+      delays(500);
+      moveXYZ(16000, 831, 1000, 0);
+      delays(500);
     }
     else if (cmd == "home") {
       Serial.println("Về vị trí gốc");
