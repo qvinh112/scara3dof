@@ -73,8 +73,8 @@ void setup() {
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW); // Đảm bảo relay tắt khi khởi động
   
-  stepperY.setMaxSpeed(400);
-  stepperY.setAcceleration(200);
+  stepperY.setMaxSpeed(800);
+  stepperY.setAcceleration(400);
   stepperX.setMaxSpeed(1000);
   stepperX.setAcceleration(500);
   stepperZ.setMaxSpeed(1000);
@@ -126,42 +126,123 @@ void loop() {
       }
     }
     else if (cmd == "HOP1") {
-      Serial.println("Thực hiện chu trình gắp và thả vật");
-      
-      Serial.println("1. Di chuyển đến vị trí trên vật...");
-      moveXYZ(93, 2680, 5000);
-      delay(500);
-      
-      Serial.println("2. Hạ xuống gần vật...");
-      moveXYZ(93, 2680, 300);
-      delay(500);
-      
-      Serial.println("3. Bật nam châm điện để gắp vật...");
-      grab();
-      delay(1000);
-      
-      Serial.println("4. Nâng vật lên cao...");
-      moveXYZ(93, 2680, 5000);
-      delay(500);
-      
-      Serial.println("5. Di chuyển đến vị trí thả...");
-      moveXYZ(16000, 1662, 5000);
-      delay(500);
-      
-      Serial.println("6. Hạ xuống vị trí thả...");
-      moveXYZ(16000, 1662, 1000);
-      delay(500);
-      
-      Serial.println("7. Tắt nam châm điện để thả vật...");
-      release();
-      delay(1000);
-      
-      Serial.println("8. Nâng lên sau khi thả...");
-      moveXYZ(16000, 1662, 5000);
-      delay(500);
-      
-      Serial.println("Hoàn thành chu trình gắp và thả vật!");
-    }
+    Serial.println("Thực hiện chu trình gắp và thả vật - HOP1");
+    moveXYZ(0, 2900, 5000);
+    delay(500);
+    moveXYZ(0, 2900, 0);
+    delay(500);
+    grab();
+    delay(1000);
+    moveXYZ(0, 2900, 5000);
+    delay(500);
+    moveXYZ(16000, 1662, 5000);
+    delay(500);
+  }
+  else if (cmd == "HOP2") {
+    Serial.println("Thực hiện chu trình gắp và thả vật - HOP2");
+    moveXYZ(51, 3257, 5000);
+    delay(500);
+    moveXYZ(51, 3257, 0);
+    delay(500);
+    grab();
+    delay(1000);
+    moveXYZ(51, 3257, 5000);
+    delay(500);
+    moveXYZ(16000, 1662, 5000);
+    delay(500);
+  }
+  else if (cmd == "HOP3") {
+    Serial.println("Thực hiện chu trình gắp và thả vật - HOP3");
+    moveXYZ(4015, 3455, 5000);
+    delay(500);
+    moveXYZ(4015, 3455, 0);
+    delay(500);
+    grab();
+    delay(1000);
+    moveXYZ(4015, 3455, 5000);
+    delay(500);
+    moveXYZ(16000, 1662, 5000);
+    delay(500);
+  }
+  else if (cmd == "HOP4") {
+    Serial.println("Thực hiện chu trình gắp và thả vật - HOP4");
+    moveXYZ(3050, 2635, 5000);
+    delay(500);
+    moveXYZ(3050, 2635, 0);
+    delay(500);
+    grab();
+    delay(1000);
+    moveXYZ(3050, 2635, 5000);
+    delay(500);
+    moveXYZ(16000, 1662, 5000);
+    delay(500);
+  }
+  else if (cmd == "HOP5") {
+    Serial.println("Thực hiện chu trình gắp và thả vật - HOP5");
+    moveXYZ(3652, 2913, 5000);
+    delay(500);
+    moveXYZ(3652, 2913, 0);
+    delay(500);
+    grab();
+    delay(1000);
+    moveXYZ(3652, 2913, 5000);
+    delay(500);
+    moveXYZ(16000, 1662, 5000);
+    delay(500);
+  }
+  else if (cmd == "HOP6") {
+    Serial.println("Thực hiện chu trình gắp và thả vật - HOP6");
+    moveXYZ(6227, 3070, 5000);
+    delay(500);
+    moveXYZ(6227, 3070, 0);
+    delay(500);
+    grab();
+    delay(1000);
+    moveXYZ(6227, 3070, 5000);
+    delay(500);
+    moveXYZ(16000, 1662, 5000);
+    delay(500);
+  }
+  else if (cmd == "HOP7") {
+    Serial.println("Thực hiện chu trình gắp và thả vật - HOP7");
+    moveXYZ(7981, 2015, 5000);
+    delay(500);
+    moveXYZ(7981, 2015, 0);
+    delay(500);
+    grab();
+    delay(1000);
+    moveXYZ(7981, 2015, 5000);
+    delay(500);
+    moveXYZ(16000, 1662, 5000);
+    delay(500);
+  }
+  else if (cmd == "HOP8") {
+    Serial.println("Thực hiện chu trình gắp và thả vật - HOP8");
+    moveXYZ(7739, 2383, 5000);
+    delay(500);
+    moveXYZ(7739, 2383, 0);
+    delay(500);
+    grab();
+    delay(1000);
+    moveXYZ(7739, 2383, 5000);
+    delay(500);
+    moveXYZ(16000, 1662, 5000);
+    delay(500);
+  }
+  else if (cmd == "HOP9") {
+    Serial.println("Thực hiện chu trình gắp và thả vật - HOP9");
+    moveXYZ(9329, 2551, 5000);
+    delay(500);
+    moveXYZ(9329, 2551, 0);
+    delay(500);
+    grab();
+    delay(1000);
+    moveXYZ(9329, 2551, 5000);
+    delay(500);
+    moveXYZ(16000, 1662, 5000);
+    delay(500);
+  }
+
     else if (cmd == "HOME") {
       Serial.println("Về vị trí gốc");
       homeAxes();
