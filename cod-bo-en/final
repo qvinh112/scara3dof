@@ -54,13 +54,12 @@ void moveXYZ(long x, long y, long z) {
   }
 }
 
-void grab() {
+void grab(){
   digitalWrite(RELAY_PIN, HIGH);  // Bật relay hút
   delay(500);  // Thời gian bật relay hút
- 
 }
 
-void release() {
+void release(){
   digitalWrite(RELAY_PIN, LOW);  // Tắt relay hút
   delay(500);  // Thời gian tắt relay hút
 }
@@ -86,7 +85,8 @@ void setup() {
   Serial.println("Các lệnh có sẵn:");
   Serial.println("HOME - Về vị trí gốc");
   Serial.println("MOVE X Y Z - Di chuyển đến tọa độ");
-  Serial.println("RELAY ON/OFF - Điều khiển nam châm điện");
+  Serial.println("GRAB - Bật nam châm điện");
+  Serial.println("RELEASE - Tắt nam châm điện");
   Serial.println("HOP1 - Thực hiện chu trình gắp vật và thả vật hoàn chỉnh");
   Serial.println("-------------------------------------");
   Serial.println("Homing...");
@@ -177,10 +177,12 @@ void loop() {
       Serial.println("Về vị trí gốc");
       homeAxes();
     }
-    else if (cmd == "grab") {
+    else if (cmd == "GRAB") {  // Sửa từ "grab" thành "GRAB"
+      Serial.println("Bật nam châm điện");
       grab();
     }
-    else if (cmd == "release") {
+    else if (cmd == "RELEASE") {  // Sửa từ "release" thành "RELEASE"
+      Serial.println("Tắt nam châm điện");
       release();
     }
     else {
