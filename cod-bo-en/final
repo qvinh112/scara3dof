@@ -34,7 +34,7 @@ void homeAxes() {
   stepperX.setCurrentPosition(0);
   
   // Home Z
-  stepperZ.setSpeed(-800);
+  stepperZ.setSpeed(-500);
   while (digitalRead(Z_LIMIT) == HIGH) {
     stepperZ.runSpeed();
   }
@@ -54,14 +54,14 @@ void moveXYZ(long x, long y, long z) {
   }
 }
 
-void grab(){
-  digitalWrite(RELAY_PIN, HIGH);  // Bật relay hút
-  delay(500);  // Thời gian bật relay hút
+void grab() {
+  digitalWrite(RELAY_PIN, HIGH);  // Bật relay (nam châm hút)
+  delay(500);
 }
 
-void release(){
-  digitalWrite(RELAY_PIN, LOW);  // Tắt relay hút
-  delay(500);  // Thời gian tắt relay hút
+void release() {
+  digitalWrite(RELAY_PIN, LOW);  // Tắt relay (nam châm nhả)
+  delay(500);
 }
 
 void setup() {
@@ -73,7 +73,7 @@ void setup() {
   pinMode(RELAY_PIN, OUTPUT);
   digitalWrite(RELAY_PIN, LOW); // Đảm bảo relay tắt khi khởi động
   
-  stepperY.setMaxSpeed(200);
+  stepperY.setMaxSpeed(400);
   stepperY.setAcceleration(200);
   stepperX.setMaxSpeed(1000);
   stepperX.setAcceleration(500);
@@ -85,9 +85,9 @@ void setup() {
   Serial.println("Các lệnh có sẵn:");
   Serial.println("HOME - Về vị trí gốc");
   Serial.println("MOVE X Y Z - Di chuyển đến tọa độ");
-  Serial.println("GRAB - Bật nam châm điện");
-  Serial.println("RELEASE - Tắt nam châm điện");
-  Serial.println("HOP1 - Thực hiện chu trình gắp vật và thả vật hoàn chỉnh");
+  Serial.println("GRAB - Bật nam châm");
+  Serial.println("RELEASE - Tắt nam châm");
+  Serial.println("HOP1 - Chu trình gắp & thả vật tự động");
   Serial.println("-------------------------------------");
   Serial.println("Homing...");
   homeAxes();
@@ -98,14 +98,13 @@ void loop() {
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
-    cmd.toUpperCase(); // Chuyển thành chữ hoa để xử lý nhất quán
-    
+    cmd.toUpperCase(); // Đảm bảo so sánh bằng chữ hoa
+
     Serial.print("Nhận lệnh: ");
     Serial.println(cmd);
     
     if (cmd.startsWith("MOVE ")) {
-      // Xử lý lệnh MOVE X Y Z
-      String params = cmd.substring(5); // Bỏ "MOVE "
+      String params = cmd.substring(5);
       params.trim();
       
       int firstSpace = params.indexOf(' ');
@@ -117,12 +116,9 @@ void loop() {
         long z = params.substring(secondSpace + 1).toInt();
         
         Serial.print("Di chuyển đến (");
-        Serial.print(x);
-        Serial.print(", ");
-        Serial.print(y);
-        Serial.print(", ");
-        Serial.print(z);
-        Serial.println(")");
+        Serial.print(x); Serial.print(", ");
+        Serial.print(y); Serial.print(", ");
+        Serial.print(z); Serial.println(")");
         
         moveXYZ(x, y, z);
       } else {
@@ -132,43 +128,36 @@ void loop() {
     else if (cmd == "HOP1") {
       Serial.println("Thực hiện chu trình gắp và thả vật");
       
-      // Di chuyển đến vị trí trên vật
       Serial.println("1. Di chuyển đến vị trí trên vật...");
-      moveXYZ(93, 1340, 5000);
+      moveXYZ(93, 2680, 5000);
       delay(500);
       
-      // Hạ xuống gần vật
       Serial.println("2. Hạ xuống gần vật...");
-      moveXYZ(93, 1340, 300); // Đảm bảo nam châm đã tắt khi tiếp cận
+      moveXYZ(93, 2680, 300);
       delay(500);
-      grab();
-      // Bật nam châm điện để gắp vật
+      
       Serial.println("3. Bật nam châm điện để gắp vật...");
-      delay(1000); // Đợi lâu hơn để đảm bảo nam châm hoạt động tốt
+      grab();
+      delay(1000);
       
-      // Nâng vật lên cao
       Serial.println("4. Nâng vật lên cao...");
-      moveXYZ(93, 1340, 5000); // Giữ nam châm bật khi nâng
+      moveXYZ(93, 2680, 5000);
       delay(500);
       
-      // Di chuyển đến vị trí thả
       Serial.println("5. Di chuyển đến vị trí thả...");
-      moveXYZ(16000, 831, 5000); // Giữ nam châm bật trong quá trình di chuyển
+      moveXYZ(16000, 1662, 5000);
       delay(500);
       
-      // Hạ xuống vị trí thả
       Serial.println("6. Hạ xuống vị trí thả...");
-      moveXYZ(16000, 831, 1000); // Giữ nam châm bật khi hạ xuống
+      moveXYZ(16000, 1662, 1000);
       delay(500);
       
-      // Tắt nam châm điện để thả vật
       Serial.println("7. Tắt nam châm điện để thả vật...");
       release();
-      delay(1000); // Đợi để đảm bảo vật được thả hoàn toàn
+      delay(1000);
       
-      // Nâng lên sau khi thả
       Serial.println("8. Nâng lên sau khi thả...");
-      moveXYZ(16000, 831, 5000); // Giữ nam châm tắt khi nâng lên
+      moveXYZ(16000, 1662, 5000);
       delay(500);
       
       Serial.println("Hoàn thành chu trình gắp và thả vật!");
@@ -177,19 +166,18 @@ void loop() {
       Serial.println("Về vị trí gốc");
       homeAxes();
     }
-    else if (cmd == "GRAB") {  // Sửa từ "grab" thành "GRAB"
-      Serial.println("Bật nam châm điện");
+    else if (cmd == "GRAB") {
       grab();
     }
-    else if (cmd == "RELEASE") {  // Sửa từ "release" thành "RELEASE"
-      Serial.println("Tắt nam châm điện");
+    else if (cmd == "RELEASE") {
       release();
     }
     else {
       Serial.println("Lệnh không hợp lệ. Vui lòng thử lại.");
     }
   }
-  
+
+  // Luôn gọi để motor hoạt động trơn tru
   stepperX.run();
   stepperY.run();
   stepperZ.run();
