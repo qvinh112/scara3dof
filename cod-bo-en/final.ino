@@ -55,12 +55,12 @@ void moveXYZ(long x, long y, long z) {
 }
 
 void grab() {
-  digitalWrite(RELAY_PIN, HIGH);  // Bật relay (nam châm hút)
+  digitalWrite(RELAY_PIN, HIGH);
   delay(500);
 }
 
 void release() {
-  digitalWrite(RELAY_PIN, LOW);  // Tắt relay (nam châm nhả)
+  digitalWrite(RELAY_PIN, LOW);
   delay(500);
 }
 
@@ -71,14 +71,14 @@ void setup() {
   pinMode(X_LIMIT, INPUT_PULLUP);
   pinMode(Z_LIMIT, INPUT_PULLUP);
   pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW); // Đảm bảo relay tắt khi khởi động
+  digitalWrite(RELAY_PIN, LOW);
   
   stepperY.setMaxSpeed(800);
   stepperY.setAcceleration(400);
-  stepperX.setMaxSpeed(1000);
-  stepperX.setAcceleration(500);
-  stepperZ.setMaxSpeed(1000);
-  stepperZ.setAcceleration(500);
+  stepperX.setMaxSpeed(2000);
+  stepperX.setAcceleration(1000);
+  stepperZ.setMaxSpeed(2000);
+  stepperZ.setAcceleration(1000);
   
   Serial.println("Robot Control System (Nam châm điện)");
   Serial.println("-------------------------------------");
@@ -98,7 +98,7 @@ void loop() {
   if (Serial.available()) {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
-    cmd.toUpperCase(); // Đảm bảo so sánh bằng chữ hoa
+    cmd.toUpperCase();
 
     Serial.print("Nhận lệnh: ");
     Serial.println(cmd);
@@ -118,131 +118,174 @@ void loop() {
         Serial.print("Di chuyển đến (");
         Serial.print(x); Serial.print(", ");
         Serial.print(y); Serial.print(", ");
-        Serial.print(z); Serial.println(")");
+        Serial.print(z * 2); Serial.println(")");
         
-        moveXYZ(x, y, z);
+        moveXYZ(x, y, z * 2);
       } else {
         Serial.println("Định dạng sai. Sử dụng: MOVE X Y Z");
       }
     }
     else if (cmd == "HOP1") {
-    Serial.println("Thực hiện chu trình gắp và thả vật - HOP1");
-    moveXYZ(0, 2900, 5000);
-    delay(500);
-    moveXYZ(0, 2900, 0);
-    delay(500);
-    grab();
-    delay(1000);
-    moveXYZ(0, 2900, 5000);
-    delay(500);
-    moveXYZ(16000, 1662, 5000);
-    delay(500);
-  }
-  else if (cmd == "HOP2") {
-    Serial.println("Thực hiện chu trình gắp và thả vật - HOP2");
-    moveXYZ(51, 3257, 5000);
-    delay(500);
-    moveXYZ(51, 3257, 0);
-    delay(500);
-    grab();
-    delay(1000);
-    moveXYZ(51, 3257, 5000);
-    delay(500);
-    moveXYZ(16000, 1662, 5000);
-    delay(500);
-  }
-  else if (cmd == "HOP3") {
-    Serial.println("Thực hiện chu trình gắp và thả vật - HOP3");
-    moveXYZ(4015, 3455, 5000);
-    delay(500);
-    moveXYZ(4015, 3455, 0);
-    delay(500);
-    grab();
-    delay(1000);
-    moveXYZ(4015, 3455, 5000);
-    delay(500);
-    moveXYZ(16000, 1662, 5000);
-    delay(500);
-  }
-  else if (cmd == "HOP4") {
-    Serial.println("Thực hiện chu trình gắp và thả vật - HOP4");
-    moveXYZ(3050, 2635, 5000);
-    delay(500);
-    moveXYZ(3050, 2635, 0);
-    delay(500);
-    grab();
-    delay(1000);
-    moveXYZ(3050, 2635, 5000);
-    delay(500);
-    moveXYZ(16000, 1662, 5000);
-    delay(500);
-  }
-  else if (cmd == "HOP5") {
-    Serial.println("Thực hiện chu trình gắp và thả vật - HOP5");
-    moveXYZ(3652, 2913, 5000);
-    delay(500);
-    moveXYZ(3652, 2913, 0);
-    delay(500);
-    grab();
-    delay(1000);
-    moveXYZ(3652, 2913, 5000);
-    delay(500);
-    moveXYZ(16000, 1662, 5000);
-    delay(500);
-  }
-  else if (cmd == "HOP6") {
-    Serial.println("Thực hiện chu trình gắp và thả vật - HOP6");
-    moveXYZ(6227, 3070, 5000);
-    delay(500);
-    moveXYZ(6227, 3070, 0);
-    delay(500);
-    grab();
-    delay(1000);
-    moveXYZ(6227, 3070, 5000);
-    delay(500);
-    moveXYZ(16000, 1662, 5000);
-    delay(500);
-  }
-  else if (cmd == "HOP7") {
-    Serial.println("Thực hiện chu trình gắp và thả vật - HOP7");
-    moveXYZ(7981, 2015, 5000);
-    delay(500);
-    moveXYZ(7981, 2015, 0);
-    delay(500);
-    grab();
-    delay(1000);
-    moveXYZ(7981, 2015, 5000);
-    delay(500);
-    moveXYZ(16000, 1662, 5000);
-    delay(500);
-  }
-  else if (cmd == "HOP8") {
-    Serial.println("Thực hiện chu trình gắp và thả vật - HOP8");
-    moveXYZ(7739, 2383, 5000);
-    delay(500);
-    moveXYZ(7739, 2383, 0);
-    delay(500);
-    grab();
-    delay(1000);
-    moveXYZ(7739, 2383, 5000);
-    delay(500);
-    moveXYZ(16000, 1662, 5000);
-    delay(500);
-  }
-  else if (cmd == "HOP9") {
-    Serial.println("Thực hiện chu trình gắp và thả vật - HOP9");
-    moveXYZ(9329, 2551, 5000);
-    delay(500);
-    moveXYZ(9329, 2551, 0);
-    delay(500);
-    grab();
-    delay(1000);
-    moveXYZ(9329, 2551, 5000);
-    delay(500);
-    moveXYZ(16000, 1662, 5000);
-    delay(500);
-  }
-
+      Serial.println("Thực hiện chu trình gắp và thả vật - HOP1");
+      moveXYZ(0, 2900, 14000);
+      delay(500);
+      moveXYZ(0, 2900, 0);
+      delay(500);
+      grab();
+      delay(1000);
+      moveXYZ(0, 2900, 14000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "HOP2") {
+      Serial.println("Thực hiện chu trình gắp và thả vật - HOP2");
+      moveXYZ(51, 3257, 14000);
+      delay(500);
+      moveXYZ(51, 3257, 0);
+      delay(500);
+      grab();
+      delay(1000);
+      moveXYZ(51, 3257, 14000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "HOP3") {
+      Serial.println("Thực hiện chu trình gắp và thả vật - HOP3");
+      moveXYZ(4015, 3455, 14000);
+      delay(500);
+      moveXYZ(4015, 3455, 0);
+      delay(500);
+      grab();
+      delay(1000);
+      moveXYZ(4015, 3455, 14000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "HOP4") {
+      Serial.println("Thực hiện chu trình gắp và thả vật - HOP4");
+      moveXYZ(3050, 2635, 14000);
+      delay(500);
+      moveXYZ(3050, 2635, 0);
+      delay(500);
+      grab();
+      delay(1000);
+      moveXYZ(3050, 2635, 14000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "HOP5") {
+      Serial.println("Thực hiện chu trình gắp và thả vật - HOP5");
+      moveXYZ(3652, 2913, 14000);
+      delay(500);
+      moveXYZ(3652, 2913, 0);
+      delay(500);
+      grab();
+      delay(1000);
+      moveXYZ(3652, 2913, 14000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "HOP6") {
+      Serial.println("Thực hiện chu trình gắp và thả vật - HOP6");
+      moveXYZ(6227, 3070, 14000);
+      delay(500);
+      moveXYZ(6227, 3070, 0);
+      delay(500);
+      grab();
+      delay(1000);
+      moveXYZ(6227, 3070, 14000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "HOP7") {
+      Serial.println("Thực hiện chu trình gắp và thả vật - HOP7");
+      moveXYZ(7981, 2015, 14000);
+      delay(500);
+      moveXYZ(7981, 2015, 0);
+      delay(500);
+      grab();
+      delay(1000);
+      moveXYZ(7981, 2015, 14000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "HOP8") {
+      Serial.println("Thực hiện chu trình gắp và thả vật - HOP8");
+      moveXYZ(7739, 2383, 14000);
+      delay(500);
+      moveXYZ(7739, 2383, 0);
+      delay(500);
+      grab();
+      delay(1000);
+      moveXYZ(7739, 2383, 14000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "HOP9") {
+      Serial.println("Thực hiện chu trình gắp và thả vật - HOP9");
+      moveXYZ(9329, 2551, 14000);
+      delay(500);
+      moveXYZ(9329, 2551, 0);
+      delay(500);
+      grab();
+      delay(1000);
+      moveXYZ(9329, 2551, 14000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "CMD1") {
+      moveXYZ(16000, 1662, 35000);
+      delay(500);
+      moveXYZ(22741, 2729, 35000);
+      release();
+      delay(1000);
+      moveXYZ(16000, 1662, 35000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "CMD2") {
+      moveXYZ(16000, 1662, 35000);
+      delay(500);
+      moveXYZ(24000, 1800, 35000);
+      release();
+      delay(1000);
+      moveXYZ(16000, 1662, 35000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "CMD3") {
+      moveXYZ(16000, 1662, 1000);
+      delay(500);
+      moveXYZ(22741, 2729, 1000);
+      release();
+      delay(1000);
+      moveXYZ(16000, 1662, 1000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
+    else if (cmd == "CMD4") {
+      moveXYZ(16000, 1662, 1000);
+      delay(500);
+      moveXYZ(24000, 1800, 1000);
+      release();
+      delay(1000);
+      moveXYZ(16000, 1662, 1000);
+      delay(500);
+      moveXYZ(16000, 1662, 14000);
+      delay(500);
+    }
     else if (cmd == "HOME") {
       Serial.println("Về vị trí gốc");
       homeAxes();
@@ -258,7 +301,6 @@ void loop() {
     }
   }
 
-  // Luôn gọi để motor hoạt động trơn tru
   stepperX.run();
   stepperY.run();
   stepperZ.run();
