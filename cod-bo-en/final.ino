@@ -3,7 +3,7 @@
 // Chân stepper
 #define STEP_Y 4  
 #define DIR_Y 3   
-#define STEP_X 7  
+#define STEP_X 7    
 #define DIR_X 6    
 #define STEP_Z 10
 #define DIR_Z 9
@@ -20,7 +20,7 @@ AccelStepper stepperZ(AccelStepper::DRIVER, STEP_Z, DIR_Z);
 
 void homeAxes() {
   // Home Y
-  stepperY.setSpeed(-200);
+  stepperY.setSpeed(-400);
   while (digitalRead(Y_LIMIT) == HIGH) {
     stepperY.runSpeed();
   }
@@ -34,7 +34,7 @@ void homeAxes() {
   stepperX.setCurrentPosition(0);
   
   // Home Z
-  stepperZ.setSpeed(-500);
+  stepperZ.setSpeed(-1000);
   while (digitalRead(Z_LIMIT) == HIGH) {
     stepperZ.runSpeed();
   }
@@ -44,7 +44,7 @@ void homeAxes() {
 void moveXYZ(long x, long y, long z) {
   stepperX.moveTo(x);
   stepperY.moveTo(y);
-  stepperZ.moveTo(z);
+  stepperZ.moveTo(z / 2);
   
   while (stepperX.distanceToGo() != 0 || stepperY.distanceToGo() != 0 || stepperZ.distanceToGo() != 0) {
     stepperX.run();
@@ -118,9 +118,9 @@ void loop() {
         Serial.print("Di chuyển đến (");
         Serial.print(x); Serial.print(", ");
         Serial.print(y); Serial.print(", ");
-        Serial.print(z * 2); Serial.println(")");
+        Serial.print(z); Serial.println(")");
         
-        moveXYZ(x, y, z * 2);
+        moveXYZ(x, y, z);
       } else {
         Serial.println("Định dạng sai. Sử dụng: MOVE X Y Z");
       }
@@ -139,7 +139,6 @@ void loop() {
       delay(500);
     }
     else if (cmd == "HOP2") {
-      Serial.println("Thực hiện chu trình gắp và thả vật - HOP2");
       moveXYZ(51, 3257, 14000);
       delay(500);
       moveXYZ(51, 3257, 0);
@@ -152,7 +151,6 @@ void loop() {
       delay(500);
     }
     else if (cmd == "HOP3") {
-      Serial.println("Thực hiện chu trình gắp và thả vật - HOP3");
       moveXYZ(4015, 3455, 14000);
       delay(500);
       moveXYZ(4015, 3455, 0);
@@ -165,7 +163,6 @@ void loop() {
       delay(500);
     }
     else if (cmd == "HOP4") {
-      Serial.println("Thực hiện chu trình gắp và thả vật - HOP4");
       moveXYZ(3050, 2635, 14000);
       delay(500);
       moveXYZ(3050, 2635, 0);
@@ -178,7 +175,6 @@ void loop() {
       delay(500);
     }
     else if (cmd == "HOP5") {
-      Serial.println("Thực hiện chu trình gắp và thả vật - HOP5");
       moveXYZ(3652, 2913, 14000);
       delay(500);
       moveXYZ(3652, 2913, 0);
@@ -191,7 +187,6 @@ void loop() {
       delay(500);
     }
     else if (cmd == "HOP6") {
-      Serial.println("Thực hiện chu trình gắp và thả vật - HOP6");
       moveXYZ(6227, 3070, 14000);
       delay(500);
       moveXYZ(6227, 3070, 0);
@@ -204,7 +199,6 @@ void loop() {
       delay(500);
     }
     else if (cmd == "HOP7") {
-      Serial.println("Thực hiện chu trình gắp và thả vật - HOP7");
       moveXYZ(7981, 2015, 14000);
       delay(500);
       moveXYZ(7981, 2015, 0);
@@ -217,7 +211,6 @@ void loop() {
       delay(500);
     }
     else if (cmd == "HOP8") {
-      Serial.println("Thực hiện chu trình gắp và thả vật - HOP8");
       moveXYZ(7739, 2383, 14000);
       delay(500);
       moveXYZ(7739, 2383, 0);
@@ -230,7 +223,6 @@ void loop() {
       delay(500);
     }
     else if (cmd == "HOP9") {
-      Serial.println("Thực hiện chu trình gắp và thả vật - HOP9");
       moveXYZ(9329, 2551, 14000);
       delay(500);
       moveXYZ(9329, 2551, 0);
